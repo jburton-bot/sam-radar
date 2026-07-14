@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: sam-radar
+    runtime: docker
+    healthCheckPath: /healthz
+    envVars:
+      - key: RADAR_DB_PATH
+        value: /var/data/radar.db
+      - key: RADAR_SETTINGS_PATH
+        value: /var/data/settings.json
+      - key: SAM_API_KEY
+        sync: false
+      - key: RADAR_ACCESS_PASSWORD
+        sync: false
+      - key: RADAR_PUBLIC_URL
+        sync: false
+      - key: RADAR_SMTP_PASSWORD
+        sync: false
+      - key: RADAR_SMTP_USERNAME
+        sync: false
+      - key: RADAR_FROM_ADDRESS
+        sync: false
+      - key: RADAR_TO_ADDRESSES
+        sync: false

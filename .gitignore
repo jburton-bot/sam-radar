@@ -1,0 +1,32 @@
+# Data & databases
+radar.db
+radar.db-shm
+radar.db-wal
+*.backup
+
+# Configuration with secrets
+settings.json
+
+# Python
+__pycache__/
+*.pyc
+.Python
+venv/
+.venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.DS_Store
+.vscode/settings.json
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

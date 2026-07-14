@@ -1,0 +1,64 @@
+{
+  "app": {
+    "port": 8765,
+    "public_url": "",
+    "access_password": "",
+    "open_browser": true,
+    "tls_ca_file": ""
+  },
+  "sam": {
+    "api_key": "YOUR_SAM_GOV_API_KEY_HERE",
+    "base_url": "https://api.sam.gov/opportunities/v2/search",
+    "naics_codes": ["541511", "541512", "541513", "541519", "518210"],
+    "notice_types": ["p", "k", "o", "r", "s"]
+  },
+  "sync": {
+    "incremental_days": 3,
+    "first_backfill_days": 90,
+    "backfill_chunk_days": 7,
+    "page_size": 100,
+    "request_gap_seconds": 0.7,
+    "retry_attempts": 5,
+    "daily_sync_time": "07:30",
+    "auto_sync": true
+  },
+  "score": {
+    "min_alert_score": 4,
+    "keywords": ["digital", "software", "cloud", "data", "cyber", "agile", "devops", "human centered", "user experience"],
+    "set_asides": ["SBA", "SBP"],
+    "weights": {
+      "naics_match": 3,
+      "priority_agency": 2,
+      "keyword_first": 2,
+      "keyword_extra": 1,
+      "set_aside_match": 1,
+      "sources_sought": 1,
+      "active_solicitation": 1
+    }
+  },
+  "agencies": [
+    {"code": "VA", "enabled": true, "label": "Veterans Affairs", "match": "VETERANS AFFAIRS"},
+    {"code": "GSA", "enabled": true, "label": "General Services Administration", "match": "GENERAL SERVICES ADMINISTRATION"},
+    {"code": "HHS", "enabled": true, "label": "Health and Human Services", "match": "HEALTH AND HUMAN SERVICES"},
+    {"code": "SSA", "enabled": true, "label": "Social Security Administration", "match": "SOCIAL SECURITY ADMINISTRATION"},
+    {"code": "TREAS", "enabled": true, "label": "Department of the Treasury", "match": "TREASURY"},
+    {"code": "STATE", "enabled": true, "label": "Department of State", "match": "DEPARTMENT OF STATE"},
+    {"code": "DOJ", "enabled": true, "label": "Department of Justice", "match": "DEPARTMENT OF JUSTICE"},
+    {"code": "DOL", "enabled": true, "label": "Department of Labor", "match": "DEPARTMENT OF LABOR"},
+    {"code": "DHS", "enabled": true, "label": "Department of Homeland Security", "match": "HOMELAND SECURITY"},
+    {"code": "DOC", "enabled": true, "label": "Department of Commerce", "match": "DEPARTMENT OF COMMERCE"}
+  ],
+  "email": {
+    "enabled": false,
+    "auto_send": false,
+    "smtp_host": "smtp.gmail.com",
+    "smtp_port": 587,
+    "smtp_username": "your-email@gmail.com",
+    "smtp_password": "",
+    "from_address": "your-email@gmail.com",
+    "to_addresses": ["teammate1@example.com", "teammate2@example.com"],
+    "send_time": "09:00",
+    "last_auto_at": "",
+    "last_auto_result": ""
+  }
+}
