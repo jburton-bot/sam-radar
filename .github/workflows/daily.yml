@@ -1,0 +1,33 @@
+name: Daily SAM Radar digest
+
+on:
+  schedule:
+    # GitHub schedules run on UTC time. 11:50 UTC = 7:50 AM Eastern during
+    # daylight saving time (March-November). After clocks change in November
+    # this fires at 6:50 AM Eastern; switch to "50 12 * * 1-5" then if you
+    # prefer to keep 7:50.
+    - cron: "50 11 * * 1-5"
+  workflow_dispatch: {}
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Remember the database between runs
+        uses: actions/cache@v4
+        with:
+          path: radar.db
+          key: radar-db-${{ github.run_id }}
+          restore-keys: |
+            radar-db-
+
+      - name: Sync SAM.gov and send the digest
+        env:
+          SAM_API_KEY: ${{ secrets.SAM_API_KEY }}
+          RADAR_SMTP_USERNAME: ${{ secrets.RADAR_SMTP_USERNAME }}
+          RADAR_SMTP_PASSWORD: ${{ secrets.RADAR_SMTP_PASSWORD }}
+          RADAR_TO_ADDRESSES: ${{ secrets.RADAR_TO_ADDRESSES }}
+        run: python3 run_digest.py
