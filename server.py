@@ -782,49 +782,6 @@ def scheduler_loop() -> None:
         time.sleep(30)
 
 
-SAMPLE_ITEMS = [
-    ("VA-DIG-001", "Veterans Health Digital Intake Modernization", "VA", "Veterans Affairs", "r", "541511", "SBA", 1, 18, "digital software agile human centered"),
-    ("GSA-CLOUD-022", "Cloud Platform Engineering Support", "GSA", "General Services Administration", "o", "541512", "SBP", 2, 12, "cloud devops software"),
-    ("HHS-DATA-118", "Public Health Data Products and Analytics", "HHS", "Health and Human Services", "k", "541519", "", 3, 8, "data digital agile"),
-    ("SSA-UX-039", "Citizen Portal User Experience Research", "SSA", "Social Security Administration", "r", "541511", "SBA", 0, 21, "user experience digital human centered"),
-    ("TREAS-CY-007", "Treasury Zero Trust Cybersecurity Services", "TREAS", "Department of the Treasury", "o", "541512", "", 4, 10, "cyber cloud devops"),
-    ("STATE-CRM-031", "Consular Case Management Software", "STATE", "Department of State", "p", "541511", "SBA", 3, 24, "software agile data"),
-    ("DOJ-DATA-144", "Justice Data Exchange Modernization", "DOJ", "Department of Justice", "k", "541519", "", 2, 15, "data cloud digital"),
-    ("DOL-PORTAL-098", "Workforce Services Digital Portal", "DOL", "Department of Labor", "o", "541511", "SBP", 1, 6, "digital software user experience"),
-    ("DHS-DEV-205", "Mission Application DevSecOps Support", "DHS", "Department of Homeland Security", "r", "541512", "", 5, 30, "devops cyber software cloud"),
-    ("DOC-HOST-062", "Commerce Data Hosting Operations", "DOC", "Department of Commerce", "p", "518210", "SBA", 4, 17, "cloud data"),
-    ("VA-LOW-003", "Facilities Landscaping Services", "VA", "Veterans Affairs", "o", "561730", "", 2, 13, "grounds maintenance"),
-    ("GSA-AI-091", "Responsible AI Product Discovery", "GSA", "General Services Administration", "s", "541511", "", 1, 9, "data digital agile user experience"),
-    ("HHS-CLOUD-226", "Health Cloud Security Assessment", "HHS", "Health and Human Services", "r", "541512", "SBP", 0, 5, "cloud cyber data"),
-    ("DHS-ID-312", "Identity Platform Integration", "DHS", "Department of Homeland Security", "k", "541519", "", 4, 19, "digital software cloud"),
-]
-
-
-def sample_payloads() -> list[dict]:
-    today = dt.date.today()
-    payloads = []
-    for notice_id, title, code, agency, type_code, naics, set_aside, posted_ago, due_in, description in SAMPLE_ITEMS:
-        payloads.append({"noticeId": notice_id, "title": title, "department": agency,
-                         "fullParentPathName": agency, "type": type_code, "naicsCode": naics,
-                         "typeOfSetAside": set_aside, "postedDate": (today - dt.timedelta(days=posted_ago)).isoformat(),
-                         "responseDeadLine": (today + dt.timedelta(days=due_in)).isoformat(), "description": description,
-                         "pointOfContact": [{"fullName": "SAM Radar sample POC", "email": "poc@example.gov"}],
-                         "uiLink": f"https://sam.gov/opp/{notice_id}/view", "_sampleAgencyCode": code})
-    return payloads
-
-
-def load_sample() -> int:
-    settings = load_settings()
-    items = sample_payloads()
-    # Preserve concise codes in samples while retaining normal agency matching for real data.
-    with connect() as conn:
-        outcome = ingest(conn, items, settings)
-        for item in items:
-            conn.execute("UPDATE opportunities SET agency_code=? WHERE notice_id=?", (item["_sampleAgencyCode"], item["noticeId"]))
-        conn.commit()
-    return outcome["inserted"] + outcome["updated"]
-
-
 def request_data(handler: BaseHTTPRequestHandler) -> dict:
     length = int(handler.headers.get("Content-Length", "0"))
     if length > 1_000_000:
@@ -942,9 +899,6 @@ class Handler(BaseHTTPRequestHandler):
                 days = int(data["days"]) if data.get("days") else None
                 ok, message = start_sync(kind, days)
                 self.send_json({"ok": ok, "message": message}, 202 if ok else 409)
-            elif path == "/api/sample":
-                count = load_sample()
-                self.send_json({"ok": True, "message": f"Loaded or refreshed {count} sample notices."})
             elif path == "/api/settings":
                 current = load_settings()
                 merged = deep_merge(current, data)
@@ -982,10 +936,6 @@ def main():
     settings = load_settings()
     if not SETTINGS_PATH.exists():
         save_settings(settings)
-    with connect() as conn:
-        empty = conn.execute("SELECT COUNT(*) FROM opportunities").fetchone()[0] == 0
-    if empty:
-        load_sample()
     threading.Thread(target=scheduler_loop, daemon=True, name="sam-radar-scheduler").start()
     port = int(os.getenv("PORT", settings["app"].get("port", 8765)))
     server = ThreadingHTTPServer(("0.0.0.0", port), Handler)
